@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from core import analytics
-from models.schemas import SqlQueryRequest
 
 app = FastAPI(title="Live ERP Analytics API", description="REST API Server for company ERP data")
 
@@ -37,13 +36,6 @@ def system_summary():
     res = analytics.get_system_summary()
     if "error" in res:
          raise HTTPException(status_code=400, detail=res["error"])
-    return res
-
-@app.post("/query")
-def run_query(request: SqlQueryRequest):
-    res = analytics.run_select_query(request.sql_query)
-    if res and isinstance(res[0], dict) and "error" in res[0]:
-        raise HTTPException(status_code=400, detail=res[0]["error"])
     return res
 
 if __name__ == "__main__":
