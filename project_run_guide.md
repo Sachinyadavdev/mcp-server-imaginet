@@ -11,3 +11,11 @@ For Running the MCP Server:
 5. uv run mcp uninstall all -> Uninstall all the MCP servers
 
 6. uv run mcp uninstall all -> Uninstall all the MCP servers
+
+uv run uvicorn api_server.main:app --host 0.0.0.0 --port 8000 --reload
+
+System Summary: GET http://localhost:8000/system-summary
+EOD Reports: GET http://localhost:8000/eod-reports?limit=10
+
+http://127.0.0.1:8000/docs
+
