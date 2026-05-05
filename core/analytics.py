@@ -154,3 +154,41 @@ def get_system_summary() -> Dict[str, Any]:
          return {"error": str(e)}
     finally:
         conn.close()
+
+def submit_eod_report(report: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Submit a new EOD report for a specific employee and date.
+    """
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 1. Resolve employee_id and department_id
+            cursor.execute("SELECT ID, department FROM tbl_hr_master WHERE employee_name LIKE %s LIMIT 1", (f"%{report['employee_name']}%",))
+            emp = cursor.fetchone()
+            if not emp:
+                return {"error": f"Employee '{report['employee_name']}' not found."}
+            
+            employee_id = emp['ID']
+            department_id = emp['department']
+            
+            # 2. Resolve project_id
+            project_id = 0
+            if report.get('project_name'):
+                cursor.execute("SELECT id FROM tbl_project_master WHERE name LIKE %s LIMIT 1", (f"%{report['project_name']}%",))
+                proj = cursor.fetchone()
+                if proj:
+                    project_id = proj['id']
+            
+            # 3. Insert into tbl_eod_report
+            sql = '''
+                INSERT INTO tbl_eod_report (department_id, employee_id, date, project_id, description, created_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
+            '''
+            cursor.execute(sql, (department_id, employee_id, report['date'], project_id, report['description']))
+            conn.commit()
+            
+            return {"success": True, "message": "EOD report submitted successfully.", "id": cursor.lastrowid}
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        conn.close()
